@@ -4,9 +4,11 @@ The Silverline package manifest for **templates** and **widgets**: schema, versi
 release check every template and widget repository runs. Architecture:
 `virexen-cms-api/docs/PLATFORM.md`.
 
-The manifest lives in the package's `package.json` under `"virexen"`, so the registry's metadata
-carries it and the CMS can check a package before downloading it. The package version (= the git
-tag without `v`) is the manifest's version.
+The manifest lives in the package's `package.json` under `"virexen"`. The CMS reads it from the
+downloaded archive after checking the archive against the registry's integrity hash (GitHub Packages
+doesn't keep custom fields in its metadata). The package version (= the git tag without `v`) is the
+manifest's version. Template and widget repositories run the release check from this repository's
+source at a fixed tag (it's public; the package itself stays private).
 
 ```jsonc
 {

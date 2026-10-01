@@ -1,0 +1,41 @@
+{
+  "name": "@virexen-group/package-manifest",
+  "version": "0.1.0",
+  "description": "The Silverline package manifest (widgets and templates): schema, version ranges and release checks",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Virexen-Group/package-manifest.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "restricted"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "virexen-package": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^9.33.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

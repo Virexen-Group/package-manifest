@@ -63,6 +63,20 @@ describe("package checks", () => {
     expect(errors).toContain("virexen.frontend.entry");
   });
 
+  it("describes settings, section display settings and public page paths", () => {
+    const result = checkPackage(widget({
+      permissions: ["public-routes:register"],
+      settings: [{ key: "dateFormat", label: "Date format", type: "select", default: "long", public: true, options: [{ value: "long", label: "1 July 2026" }] }],
+      frontend: {
+        sections: [{ id: "news-cards", name: "News cards", settings: [{ key: "limit", label: "Articles", type: "number", default: 3, min: 1, max: 12 }], contentFields: ["eyebrow", "headline"], legacyType: "featuredNews" }],
+        publicPages: [{ id: "news", name: "News", defaultSlug: "news", paths: ["", ":slug"] }],
+      },
+    }));
+    expect(result.ok, JSON.stringify(result)).toBe(true);
+    const bad = checkPackage(widget({ settings: [{ key: "1bad", label: "x", type: "colour" }], frontend: { publicPages: [{ id: "news", name: "News", defaultSlug: "news", paths: ["../x"] }] } }));
+    expect(bad.ok ? [] : bad.errors.join("\n")).toMatch(/settings\.0\.key[\s\S]*settings\.0\.type[\s\S]*publicPages\.0\.paths/);
+  });
+
   it("checks consistency once the shape is right", () => {
     const result = checkPackage(widget({ version: "2.2.0", cms: { dashboard: { label: "News", icon: "newspaper", route: "/widgets/other" } }, frontend: { publicPages: [{ id: "news", name: "News", defaultSlug: "news" }] } }, { name: "@virexen-group/latest-news" }));
     expect(result.ok ? [] : result.errors).toEqual([

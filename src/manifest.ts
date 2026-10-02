@@ -82,11 +82,34 @@ export const templateManifest = z.object({
   template: z.record(z.unknown()).default({}),
 });
 
+/** A setting the CMS renders and validates (widget settings, section display settings) */
+export const settingField = z.object({
+  key: z.string().regex(/^[a-zA-Z][a-zA-Z0-9]{0,40}$/),
+  label: z.string().min(1).max(80),
+  type: z.enum(["boolean", "text", "textarea", "number", "select", "url", "email"]),
+  default: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional(),
+  help: z.string().max(300).optional(),
+  options: z.array(z.object({ value: z.string().max(80), label: z.string().max(80) })).max(50).optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  maxLength: z.number().int().positive().max(100_000).optional(),
+  required: z.boolean().optional(),
+  /** Sent to websites with the widget's public data; everything else stays in the CMS */
+  public: z.boolean().optional(),
+});
+export type SettingField = z.infer<typeof settingField>;
+
+const CONTENT_FIELDS = ["eyebrow", "headline", "body", "cta", "ctaHref"] as const;
+
 export const widgetManifest = z.object({
   ...base,
   type: z.literal("widget"),
   /** Earlier IDs this widget answers to (e.g. "contact-forms" for "forms") */
   aliases: z.array(slug).max(10).default([]),
+  /** What it does for templates (templates support capabilities, e.g. "news"); defaults to the ID */
+  capability: slug.optional(),
+  /** Global settings (the widget's settings page) */
+  settings: z.array(settingField).max(100).default([]),
   cms: z.object({
     /** Every widget has a settings page (/widgets/<id>/settings) */
     settings: z.literal(true).default(true),
@@ -101,8 +124,26 @@ export const widgetManifest = z.object({
   frontend: z.object({
     /** Website bundle (sections, public pages), relative to the package */
     entry: filePath.optional(),
-    sections: z.array(z.object({ id: slug, name: z.string().min(1).max(80), description: z.string().max(300).default(""), category: z.string().max(40).default("Widgets") })).max(50).default([]),
-    publicPages: z.array(z.object({ id: slug, name: z.string().min(1).max(80), defaultSlug: z.string().regex(/^[a-z0-9-]+(\/[a-z0-9-]+)*$/).max(100) })).max(10).default([]),
+    sections: z.array(z.object({
+      id: slug,
+      name: z.string().min(1).max(80),
+      description: z.string().max(300).default(""),
+      category: z.string().max(40).default("Widgets"),
+      /** Display settings for one placed section */
+      settings: z.array(settingField).max(50).default([]),
+      /** Page-owned text around the widget's data */
+      contentFields: z.array(z.enum(CONTENT_FIELDS)).default([]),
+      defaultContent: z.record(z.string().max(500)).default({}),
+      /** Older section type this replaces in saved pages (e.g. "featuredNews") */
+      legacyType: z.string().regex(/^[a-zA-Z][a-zA-Z0-9-]{0,60}$/).optional(),
+    })).max(50).default([]),
+    publicPages: z.array(z.object({
+      id: slug,
+      name: z.string().min(1).max(80),
+      defaultSlug: z.string().regex(/^[a-z0-9-]+(\/[a-z0-9-]+)*$/).max(100),
+      /** Paths under the page's slug it answers ("" = the page itself, ":slug" = e.g. one article) */
+      paths: z.array(z.string().regex(/^$|^(?::?[a-z][a-zA-Z0-9-]*)(\/:?[a-z][a-zA-Z0-9-]*)*$/)).min(1).max(10).default([""]),
+    })).max(10).default([]),
   }).default({}),
   /** Server code the widget runtime loads (API routes, hooks), relative to the package */
   server: z.object({ entry: filePath }).optional(),

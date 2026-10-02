@@ -1,6 +1,6 @@
 {
   "name": "@virexen-group/package-manifest",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The Silverline package manifest (widgets and templates): schema, version ranges and release checks",
   "repository": {
     "type": "git",
